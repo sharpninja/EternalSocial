@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EternalSocial.Proxy/EternalSocial.Proxy.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EternalSocial.Proxy.Tests/EternalSocial.Proxy.Tests.csproj" />
+  </Folder>
+</Solution>

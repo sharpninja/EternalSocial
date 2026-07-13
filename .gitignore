@@ -1,0 +1,32 @@
+# .NET build output
+[Bb]in/
+[Oo]bj/
+*.user
+[Dd]ebug/
+[Rr]elease/
+
+# LiteDB runtime store (repo-root ./data only; anchored so source Data/ folders survive)
+/data/
+*.db
+*.db-log
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# MCP Server workspace local state (managed by the server, not source)
+AGENTS-README-FIRST.yaml
+AGENTS-README-FIRST.yaml.*
+.mcpServer/
+cache/
+mcp.db
