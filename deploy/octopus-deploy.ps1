@@ -27,6 +27,18 @@ function TeardownContainer($name) {
 $gatewayKey = $OctopusParameters['GATEWAY_KEY']
 if (-not $gatewayKey) { throw 'GATEWAY_KEY variable is not set (EternalSocial library set).' }
 
+# Carry-forward fallback: when a secret is not set on this Octopus project, harvest it
+# from the currently running container on this host. Values never leave the deploy
+# host; once the project variables are populated they win over the fallback.
+function Get-ContainerEnv($containerName, $varName) {
+    $eap = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+    $lines = docker inspect $containerName --format '{{range .Config.Env}}{{println .}}{{end}}' 2>$null
+    $ErrorActionPreference = $eap
+    $global:LASTEXITCODE = 0
+    foreach ($l in @($lines)) { if ($l -like "$varName=*") { return $l.Substring($varName.Length + 1) } }
+    return $null
+}
+
 # Git-sourced steps extract the repo one level ABOVE this script's folder and run the
 # script with CWD = the script's folder, so probe $PSScriptRoot's parent, then $PWD.
 $src = Split-Path -Parent $PSScriptRoot
@@ -58,7 +70,11 @@ if (-not (docker network ls -q --filter "name=^$network$")) {
 
 $envFile = Join-Path $env:TEMP 'eternalsocial.env'
 $names = @('Authentication__Google__ClientId','Authentication__Google__ClientSecret')
-$lines = foreach ($n in $names) { $v = $OctopusParameters[$n]; if ($v) { "$n=$v" } }
+$lines = foreach ($n in $names) {
+    $v = $OctopusParameters[$n]
+    if (-not $v) { $v = Get-ContainerEnv $container $n; if ($v) { Write-Host "carry-forward: $n from running $container" } }
+    if ($v) { "$n=$v" }
+}
 $lines = @($lines) + "GATEWAY_KEY=$gatewayKey"
 [System.IO.File]::WriteAllLines($envFile, [string[]]$lines)
 
@@ -71,6 +87,7 @@ try {
 }
 
 $ngrokToken = $OctopusParameters['NGROK_AUTHTOKEN']
+if (-not $ngrokToken) { $ngrokToken = Get-ContainerEnv $ngrok 'NGROK_AUTHTOKEN'; if ($ngrokToken) { Write-Host "carry-forward: NGROK_AUTHTOKEN from running $ngrok" } }
 if (-not $ngrokToken) { $ngrokToken = $env:NGROK_AUTHTOKEN }
 TeardownContainer $ngrok
 if ($ngrokToken) {
