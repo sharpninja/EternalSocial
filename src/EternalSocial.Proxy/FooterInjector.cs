@@ -28,12 +28,15 @@ public static class FooterInjector
 
         // Publishes --es-footer-h so host templates can reserve space with
         // `var(--es-footer-h, 0rem)` (zero when the page is reached without the gateway).
+        // The variable grows at narrow widths where the links wrap to a second row,
+        // so reservations stay accurate and no link is ever clipped.
         return
             "<style>" +
             ":root{--es-footer-h:2.6rem}" +
-            ".es-footer{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;box-sizing:border-box;height:var(--es-footer-h);" +
-            "display:flex;gap:1.25rem;align-items:center;justify-content:center;flex-wrap:wrap;padding:.45rem .75rem;" +
-            "font:500 .8rem/1.2 system-ui,sans-serif;overflow:hidden;" +
+            "@media (max-width:560px){:root{--es-footer-h:4.4rem}}" +
+            ".es-footer{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;box-sizing:border-box;min-height:var(--es-footer-h);" +
+            "display:flex;gap:.9rem 1.25rem;align-items:center;align-content:center;justify-content:center;flex-wrap:wrap;padding:.45rem .75rem;" +
+            "font:500 .8rem/1.2 system-ui,sans-serif;" +
             "background:rgba(16,16,20,.95);color:#9aa0ac;border-top:1px solid #2a2a33;backdrop-filter:blur(6px)}" +
             ".es-footer a{color:#c9cedd;text-decoration:none}.es-footer a:hover{color:#fff;text-decoration:underline}" +
             "@media (prefers-color-scheme:light){.es-footer{background:rgba(255,255,255,.95);color:#5a5f6b;border-top-color:#e2e4ea}" +

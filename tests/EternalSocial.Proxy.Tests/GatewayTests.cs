@@ -67,6 +67,8 @@ public class FooterInjectorTests
         Assert.Contains("es-footer", result);
         Assert.Contains("position:fixed", result.Replace(" ", ""));
         Assert.Contains("--es-footer-h:", result);   // publishes the height for template reservations
+        Assert.Contains("min-height:var(--es-footer-h)", result.Replace(" ", ""));   // wrapped links grow the bar, never clip
+        Assert.DoesNotContain("overflow:hidden", result.Replace(" ", ""));
         Assert.Contains("href=\"/r/\"", result);
         Assert.Contains("EternalReadit", result);
         Assert.Contains("href=\"/x/\"", result);
