@@ -48,6 +48,46 @@ public class GatewayMapperTests
         => Assert.Equal(valid, GatewayMapper.IsValidUpstream(upstream));
 }
 
+public class FooterInjectorTests
+{
+    private static readonly ProxyRoute[] Routes =
+    {
+        new() { Prefix = "/r", Title = "EternalReadit", Upstream = "http://eternalreddit:8080", Enabled = true },
+        new() { Prefix = "/x", Title = "EternalX", Upstream = "http://eternalx:8080", Enabled = true },
+        new() { Prefix = "/d", Title = "EternalDiscord", Upstream = "http://eternaldiscord:8080", Enabled = false }, // disabled: not linked
+    };
+
+    [Fact]
+    public void Replaces_marker_with_pinned_footer_linking_enabled_routes()
+    {
+        var html = $"<html><body><h1>app</h1>{FooterInjector.Marker}</body></html>";
+        var result = FooterInjector.Inject(html, Routes);
+
+        Assert.DoesNotContain(FooterInjector.Marker, result);
+        Assert.Contains("es-footer", result);
+        Assert.Contains("position:fixed", result.Replace(" ", ""));
+        Assert.Contains("href=\"/r/\"", result);
+        Assert.Contains("EternalReadit", result);
+        Assert.Contains("href=\"/x/\"", result);
+        Assert.DoesNotContain("href=\"/d/\"", result);   // disabled route not linked
+        Assert.Contains("href=\"/\"", result);            // estate home link
+    }
+
+    [Fact]
+    public void Html_without_marker_is_returned_unchanged()
+    {
+        const string html = "<html><body>plain</body></html>";
+        Assert.Same(html, FooterInjector.Inject(html, Routes));
+    }
+
+    [Fact]
+    public void Injection_consumes_the_marker_so_a_second_pass_changes_nothing()
+    {
+        var once = FooterInjector.Inject($"<body>{FooterInjector.Marker}</body>", Routes);
+        Assert.Same(once, FooterInjector.Inject(once, Routes));
+    }
+}
+
 public class RouteStoreTests
 {
     [Fact]
@@ -128,6 +168,14 @@ public class GatewayEndpointTests : IClassFixture<WebApplicationFactory<Program>
         Assert.Contains("EternalReadit", html);
         Assert.Contains("EternalX", html);
         Assert.Contains("EternalDiscord", html);
+    }
+
+    [Fact]
+    public async Task Landing_carries_the_pinned_footer()
+    {
+        var html = await Client().GetStringAsync("/");
+        Assert.Contains("es-footer", html);
+        Assert.DoesNotContain(FooterInjector.Marker, html);
     }
 
     [Fact]

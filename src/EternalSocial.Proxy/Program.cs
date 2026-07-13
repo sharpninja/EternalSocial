@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text;
 using EternalSocial.Proxy;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
@@ -86,34 +87,56 @@ builder.Services.AddAuthorization(o =>
 var gatewayKey = builder.Configuration["GATEWAY_KEY"];
 builder.Services.AddReverseProxy()
     .LoadFromMemory(Array.Empty<RouteConfig>(), Array.Empty<ClusterConfig>())
-    .AddTransforms(t => t.AddRequestTransform(ctx =>
+    .AddTransforms(t =>
     {
-        var headers = ctx.ProxyRequest.Headers;
-        // Never let a client smuggle identity headers through the gateway.
-        headers.Remove("X-Gateway-Key");
-        headers.Remove("X-Auth-UserId");
-        headers.Remove("X-Auth-Name");
-        headers.Remove("X-Auth-Email");
-
-        if (!string.IsNullOrEmpty(gatewayKey))
+        t.AddRequestTransform(ctx =>
         {
-            headers.TryAddWithoutValidation("X-Gateway-Key", gatewayKey);
-            var user = ctx.HttpContext.User;
-            if (user.Identity?.IsAuthenticated == true)
+            var headers = ctx.ProxyRequest.Headers;
+            // Never let a client smuggle identity headers through the gateway.
+            headers.Remove("X-Gateway-Key");
+            headers.Remove("X-Auth-UserId");
+            headers.Remove("X-Auth-Name");
+            headers.Remove("X-Auth-Email");
+
+            if (!string.IsNullOrEmpty(gatewayKey))
             {
-                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
-                if (!string.IsNullOrEmpty(userId))
+                headers.TryAddWithoutValidation("X-Gateway-Key", gatewayKey);
+                var user = ctx.HttpContext.User;
+                if (user.Identity?.IsAuthenticated == true)
                 {
-                    headers.TryAddWithoutValidation("X-Auth-UserId", userId);
-                    var name = user.FindFirst("name")?.Value ?? user.FindFirst(ClaimTypes.Name)?.Value;
-                    if (!string.IsNullOrEmpty(name)) headers.TryAddWithoutValidation("X-Auth-Name", name);
-                    var email = user.FindFirst("email")?.Value ?? user.FindFirst(ClaimTypes.Email)?.Value;
-                    if (!string.IsNullOrEmpty(email)) headers.TryAddWithoutValidation("X-Auth-Email", email);
+                    var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        headers.TryAddWithoutValidation("X-Auth-UserId", userId);
+                        var name = user.FindFirst("name")?.Value ?? user.FindFirst(ClaimTypes.Name)?.Value;
+                        if (!string.IsNullOrEmpty(name)) headers.TryAddWithoutValidation("X-Auth-Name", name);
+                        var email = user.FindFirst("email")?.Value ?? user.FindFirst(ClaimTypes.Email)?.Value;
+                        if (!string.IsNullOrEmpty(email)) headers.TryAddWithoutValidation("X-Auth-Email", email);
+                    }
                 }
             }
-        }
-        return default;
-    }));
+            return default;
+        });
+
+        // Pinned estate footer: sites carry FooterInjector.Marker in their host page;
+        // the gateway swaps it for the footer on the way out. Compressed or non-HTML
+        // bodies pass through untouched (the marker is just an HTML comment then).
+        t.AddResponseTransform(async ctx =>
+        {
+            var resp = ctx.ProxyResponse;
+            if (resp is null || (int)resp.StatusCode != StatusCodes.Status200OK) return;
+            if (!string.Equals(resp.Content.Headers.ContentType?.MediaType, "text/html", StringComparison.OrdinalIgnoreCase)) return;
+            if (resp.Content.Headers.ContentEncoding.Count > 0) return;
+
+            var html = await resp.Content.ReadAsStringAsync(ctx.HttpContext.RequestAborted);
+            var routes = ctx.HttpContext.RequestServices.GetRequiredService<GatewayState>().Routes;
+            var bytes = Encoding.UTF8.GetBytes(FooterInjector.Inject(html, routes));
+
+            ctx.SuppressResponseBody = true;
+            ctx.HttpContext.Response.ContentLength = bytes.Length;
+            await ctx.HttpContext.Response.Body.WriteAsync(bytes, ctx.HttpContext.RequestAborted);
+        });
+    });
 
 var app = builder.Build();
 
@@ -158,7 +181,7 @@ app.MapGet("/", (HttpContext http, IConfiguration config) =>
         ? http.User.FindFirst("name")?.Value ?? http.User.Identity!.Name
         : null;
     var isAdmin = GatewayAdmin.IsAdmin(http.User, GatewayAdmin.ConfiguredEmail(config));
-    return Results.Content(GatewayHtml.Landing(state.Routes, name, isAdmin, googleConfigured), "text/html; charset=utf-8");
+    return Results.Content(FooterInjector.Inject(GatewayHtml.Landing(state.Routes, name, isAdmin, googleConfigured), state.Routes), "text/html; charset=utf-8");
 });
 
 app.MapGet("/login", (string? returnUrl) =>
@@ -171,7 +194,7 @@ app.MapGet("/login", (string? returnUrl) =>
 app.MapGet("/logout", async (HttpContext http) => { await http.SignOutAsync("Cookies"); return Results.Redirect("/"); });
 app.MapPost("/logout", async (HttpContext http) => { await http.SignOutAsync("Cookies"); return Results.Redirect("/"); });
 
-app.MapGet("/admin", () => Results.Content(GatewayHtml.AdminPage(), "text/html; charset=utf-8"))
+app.MapGet("/admin", () => Results.Content(FooterInjector.Inject(GatewayHtml.AdminPage(), state.Routes), "text/html; charset=utf-8"))
     .RequireAuthorization(GatewayAdmin.PolicyName);
 
 // --- Gateway API ---
@@ -229,7 +252,7 @@ app.MapFallback((HttpContext http) =>
         && (string.Equals(r.Prefix, path, StringComparison.OrdinalIgnoreCase)
             || path.StartsWith(r.Prefix + "/", StringComparison.OrdinalIgnoreCase)));
     return soon is not null
-        ? Results.Content(GatewayHtml.Soon(soon.Title), "text/html; charset=utf-8")
+        ? Results.Content(FooterInjector.Inject(GatewayHtml.Soon(soon.Title), state.Routes), "text/html; charset=utf-8")
         : Results.NotFound();
 });
 

@@ -90,7 +90,7 @@ public static class GatewayHtml
                 """);
         }
 
-        sb.Append("<p class=\"foot\">One tunnel, many afterlives.</p></div></body></html>");
+        sb.Append("<p class=\"foot\">One tunnel, many afterlives.</p></div>" + FooterInjector.Marker + "</body></html>");
         return sb.ToString();
     }
 
@@ -103,7 +103,7 @@ public static class GatewayHtml
         <h1>Not <span class="accent">yet</span> eternal</h1>
         <p class="tag">{{E(title)}} hasn't launched. The dead are still onboarding.</p>
         <a href="/">&larr; Back to EternalSocial</a>
-        </div></body></html>
+        </div>{{FooterInjector.Marker}}</body></html>
         """;
 
     public static string AdminPage() => $$$"""
@@ -206,6 +206,6 @@ public static class GatewayHtml
         }
         loadRoutes().catch(e => status('Load failed: ' + e.message));
         loadLogs().catch(() => {});
-        </script></body></html>
+        </script>{{{FooterInjector.Marker}}}</body></html>
         """;
 }
