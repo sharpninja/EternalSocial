@@ -9,7 +9,7 @@ Scope: layer-1+
 
 ## TR-CORE-ARCH-002
 
-**Footer injection transform** — A YARP response transform buffers 200 text/html responses without a Content-Encoding, replaces the first FooterInjector.Marker occurrence with the footer markup, and rewrites the body with a corrected Content-Length. Non-HTML, non-200, compressed, and marker-less documents pass through unchanged; Razor component templates must emit the marker via MarkupString because the Razor compiler strips literal HTML comments.
+**Footer injection transform** — A YARP response transform buffers 200 text/html responses without a Content-Encoding, replaces the first FooterInjector.Marker occurrence with the footer markup, and rewrites the body with a corrected Content-Length. The footer publishes its height as :root --es-footer-h and templates reserve space with var(--es-footer-h, 0rem) on body padding and full-viewport containers, collapsing to zero on direct visits. Non-HTML, non-200, compressed, and marker-less documents pass through unchanged; Razor component templates must emit the marker via MarkupString because the Razor compiler strips literal HTML comments.
 **Covered by:** FR: FR-CORE-005; TEST: TEST-CORE-001
 **Status:** completed
 Scope: layer-1+
