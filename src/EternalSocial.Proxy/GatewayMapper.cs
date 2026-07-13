@@ -13,7 +13,7 @@ public static class GatewayMapper
     /// <summary>Path prefixes the proxy itself owns; never routable or assignable.</summary>
     public static readonly IReadOnlySet<string> Reserved = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
-        "/login", "/logout", "/signin-oidc", "/admin", "/_gateway", "/health", "/denied", "/favicon.ico"
+        "/login", "/logout", "/signin-oidc", "/admin", "/_gateway", "/health", "/denied", "/favicon.ico", "/icons"
     };
 
     private static readonly Regex PrefixShape = new("^/[a-z0-9-]{1,32}$", RegexOptions.Compiled);

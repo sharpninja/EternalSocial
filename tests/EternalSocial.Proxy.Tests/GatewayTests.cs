@@ -77,6 +77,18 @@ public class FooterInjectorTests
     }
 
     [Fact]
+    public void Footer_offers_root_install_and_share_actions()
+    {
+        var result = FooterInjector.Inject($"<body>{FooterInjector.Marker}</body>", Routes);
+
+        Assert.Contains("id=\"es-install\"", result);
+        Assert.Contains("id=\"es-share\"", result);
+        Assert.Contains("beforeinstallprompt", result);   // captures the root PWA prompt
+        Assert.Contains("navigator.share", result);       // native share with clipboard fallback
+        Assert.Contains("location.origin + '/'", result.Replace("  ", " "));
+    }
+
+    [Fact]
     public void Html_without_marker_is_returned_unchanged()
     {
         const string html = "<html><body>plain</body></html>";
@@ -185,6 +197,27 @@ public class GatewayEndpointTests : IClassFixture<WebApplicationFactory<Program>
     [Fact]
     public async Task Health_is_anonymous()
         => (await Client().GetAsync("/_gateway/health")).EnsureSuccessStatusCode();
+
+    [Fact]
+    public async Task Root_manifest_makes_the_estate_installable()
+    {
+        var res = await Client().GetAsync("/manifest.webmanifest");
+        res.EnsureSuccessStatusCode();
+        Assert.Equal("application/manifest+json", res.Content.Headers.ContentType!.MediaType);
+        var json = await res.Content.ReadAsStringAsync();
+        Assert.Contains("EternalSocial", json);
+        Assert.Contains("\"start_url\"", json);
+        Assert.Contains("icon-192.png", json);
+        Assert.Contains("icon-512.png", json);
+    }
+
+    [Fact]
+    public async Task Landing_links_the_root_manifest()
+        => Assert.Contains("rel=\"manifest\"", await Client().GetStringAsync("/"));
+
+    [Fact]
+    public void Icons_prefix_is_reserved()
+        => Assert.False(GatewayMapper.IsValidPrefix("/icons"));
 
     [Fact]
     public async Task Route_api_requires_auth()

@@ -174,6 +174,25 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
+// Root PWA identity: manifest + icons make the estate itself installable.
+app.UseStaticFiles();
+app.MapGet("/manifest.webmanifest", () => Results.Content("""
+    {
+      "name": "EternalSocial",
+      "short_name": "EternalSocial",
+      "description": "One tunnel, many afterlives.",
+      "start_url": "/",
+      "scope": "/",
+      "display": "standalone",
+      "background_color": "#0e1113",
+      "theme_color": "#0e1113",
+      "icons": [
+        { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+        { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+      ]
+    }
+    """, "application/manifest+json"));
+
 // --- Gateway-owned pages ---
 app.MapGet("/", (HttpContext http, IConfiguration config) =>
 {

@@ -53,6 +53,8 @@ public static class GatewayHtml
         sb.Append($"""
             <!DOCTYPE html><html lang="en"><head><meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <link rel="manifest" href="/manifest.webmanifest" />
+            <meta name="theme-color" content="#0e1113" />
             <title>EternalSocial</title><style>{Css}</style></head><body><div class="wrap">
             <div class="topline">
             """);
