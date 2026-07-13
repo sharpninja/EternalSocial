@@ -66,6 +66,7 @@ public class FooterInjectorTests
         Assert.DoesNotContain(FooterInjector.Marker, result);
         Assert.Contains("es-footer", result);
         Assert.Contains("position:fixed", result.Replace(" ", ""));
+        Assert.Contains("--es-footer-h:", result);   // publishes the height for template reservations
         Assert.Contains("href=\"/r/\"", result);
         Assert.Contains("EternalReadit", result);
         Assert.Contains("href=\"/x/\"", result);
@@ -176,6 +177,7 @@ public class GatewayEndpointTests : IClassFixture<WebApplicationFactory<Program>
         var html = await Client().GetStringAsync("/");
         Assert.Contains("es-footer", html);
         Assert.DoesNotContain(FooterInjector.Marker, html);
+        Assert.Contains("var(--es-footer-h", html);   // gateway pages reserve space too
     }
 
     [Fact]

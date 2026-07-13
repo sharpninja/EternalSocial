@@ -12,7 +12,8 @@ public static class GatewayHtml
             :root { --bg:#f6f7f8; --card:#ffffff; --line:#e2e4e8; --ink:#1a1a1b; --dim:#7c7f83; }
         }
         * { box-sizing: border-box; }
-        body { margin:0; font-family:'Segoe UI',Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+        body { margin:0; font-family:'Segoe UI',Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink);
+               padding-bottom: var(--es-footer-h, 0rem); }
         a { color: var(--accent); text-decoration: none; }
         a:hover { text-decoration: underline; }
         .wrap { max-width:640px; margin:0 auto; padding:28px 16px; }
