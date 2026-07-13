@@ -22,6 +22,6 @@ Scope: layer-1+
 
 ## FR-CORE-005 Pinned estate footer on every page
 
-The gateway injects a pinned footer (fixed bottom bar linking the enabled networks and the estate home) into every proxied HTML page. Sites opt in by carrying the <!--ETERNALSOCIAL-FOOTER--> marker in their host page template; gateway-owned pages (landing, coming-soon, admin) render the same footer.
+The gateway injects a pinned footer (fixed bottom bar linking the enabled networks and the estate home) into every proxied HTML page. Sites opt in by carrying the <!--ETERNALSOCIAL-FOOTER--> marker in their host page template; gateway-owned pages render the same footer. The footer offers root-scoped actions - Share (native share sheet with clipboard fallback, sharing the estate root URL) and Install App (installs the root PWA via /manifest.webmanifest plus generated icons; on proxied pages it routes to /?install=1 so site PWAs are never hijacked). Footer height is published as --es-footer-h (responsive) and templates reserve space with var(--es-footer-h, 0rem).
 Scope: layer-1+
 
