@@ -8,7 +8,9 @@ Traceability policy: see `Requirements-Traceability-Policy.md`.
 | FR-CORE-002 | Tracked | Functional-Requirements.md |
 | FR-CORE-003 | Tracked | Functional-Requirements.md |
 | FR-CORE-004 | Tracked | Functional-Requirements.md |
+| FR-CORE-005 | Tracked | Functional-Requirements.md |
 | TR-CORE-ARCH-001 | Tracked | Technical-Requirements.md |
+| TR-CORE-ARCH-002 | Tracked | Technical-Requirements.md |
 | TR-CORE-SEC-001 | Tracked | Technical-Requirements.md |
 | TR-CORE-SEC-002 | Tracked | Technical-Requirements.md |
 | TR-CORE-SEC-003 | Tracked | Technical-Requirements.md |

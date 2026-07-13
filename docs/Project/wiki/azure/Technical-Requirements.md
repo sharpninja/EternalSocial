@@ -7,6 +7,13 @@
 **Status:** completed
 Scope: layer-1+
 
+## TR-CORE-ARCH-002
+
+**Footer injection transform** — A YARP response transform buffers 200 text/html responses without a Content-Encoding, replaces the first FooterInjector.Marker occurrence with the footer markup, and rewrites the body with a corrected Content-Length. Non-HTML, non-200, compressed, and marker-less documents pass through unchanged; Razor component templates must emit the marker via MarkupString because the Razor compiler strips literal HTML comments.
+**Covered by:** FR: FR-CORE-005; TEST: TEST-CORE-001
+**Status:** completed
+Scope: layer-1+
+
 ## TR-CORE-SEC-001
 
 **Identity header trust boundary** — The gateway strips inbound X-Auth-* and X-Gateway-Key from clients, then injects X-Gateway-Key plus X-Auth-UserId/Name/Email from the authenticated principal. Sites accept the headers only when their GATEWAY_KEY config matches; otherwise the request is anonymous. Trust boundary = docker network + shared key.

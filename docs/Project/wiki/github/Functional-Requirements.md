@@ -20,3 +20,8 @@ Scope: layer-1+
 Logged-in users stay logged in across visits and restarts - the gateway issues a long-lived (365 day) authentication cookie so sessions survive between uses.
 Scope: layer-1+
 
+## FR-CORE-005 Pinned estate footer on every page
+
+The gateway injects a pinned footer (fixed bottom bar linking the enabled networks and the estate home) into every proxied HTML page. Sites opt in by carrying the <!--ETERNALSOCIAL-FOOTER--> marker in their host page template; gateway-owned pages (landing, coming-soon, admin) render the same footer.
+Scope: layer-1+
+
