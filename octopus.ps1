@@ -7,7 +7,7 @@ param(
     [string]$ProjectId = 'Projects-6'
 )
 $ErrorActionPreference = 'Stop'
-if (-not $OctopusUrl) { $OctopusUrl = Read-Host 'Octopus URL (e.g. http://payton-desktop:8065)' }
+if (-not $OctopusUrl) { $OctopusUrl = Read-Host 'Octopus URL (e.g. http://LAB-OMARCHY:8065)' }
 if (-not $ApiKey) { $ApiKey = Read-Host 'Octopus API key' }
 $OctopusUrl = $OctopusUrl.TrimEnd('/')
 $headers = @{ 'X-Octopus-ApiKey' = $ApiKey }
